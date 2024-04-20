@@ -7,7 +7,7 @@ public class Janela extends JFrame {
         this.setTitle("Bookings"); //adiciona um titulo ao GUI
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Permite fechar o GUI no X
         this.setResizable(true); // Permite que o usuario defina o tamanho da janela
-        this.setSize(700,700); //Define o tamanho inicial da janela
+        this.setSize(900,600); //Define o tamanho inicial da janela
         this.setVisible(true);
 
         ImageIcon icon = new ImageIcon("logo.jpg"); // cria um icon
