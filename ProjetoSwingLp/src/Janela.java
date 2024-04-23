@@ -1,5 +1,6 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,6 +17,9 @@ public class Janela extends JFrame {
     private List<Room> availableRooms;
     private List<Booking> bookings;
     private JButton addBookingButton; // Botão para adicionar reserva
+    private JTextField searchField;
+    private JTextField statusField;
+
 
     Janela(List<Room> availableRooms, List<Booking> bookings) {
         this.availableRooms = availableRooms;
@@ -58,6 +62,36 @@ public class Janela extends JFrame {
         JButton roomsButton = new JButton("Quartos");
         JButton bookingsButton = new JButton("Reservas");
 
+        searchField = new JTextField(20);
+        statusField = new JTextField(10);
+        searchField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                filterBookings();
+            }
+        });
+
+        JButton searchButton = new JButton("Search");
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                filterBookings(); // Chama o método filterBookings() quando o botão de pesquisa for clicado
+            }
+        });
+
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        searchPanel.add(new JLabel("Nome do Hóspede:"));
+        searchPanel.add(searchField);
+        searchPanel.add(new JLabel("Status da Reserva:"));
+        searchPanel.add(statusField);
+        searchPanel.add(searchButton); // Adiciona o botão de pesquisa ao painel de pesquisa
+        this.add(searchPanel, BorderLayout.SOUTH);
+
+
+        searchField.setVisible(false);
+        statusField.setVisible(false);
+        remove(searchPanel);
+
         roomsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -68,6 +102,9 @@ public class Janela extends JFrame {
                 buttonPanel.remove(addBookingButton);
                 buttonPanel.revalidate();
                 buttonPanel.repaint();
+                searchField.setVisible(false);
+                statusField.setVisible(false);
+                remove(searchPanel);
             }
         });
 
@@ -79,8 +116,12 @@ public class Janela extends JFrame {
                 table.setModel(bookingModel);
                 // Adiciona o botão de adicionar reserva quando as reservas estiverem sendo exibidas
                 buttonPanel.add(addBookingButton);
+                searchField.setVisible(true);
+                statusField.setVisible(true);
+                add(searchPanel, BorderLayout.SOUTH);
                 buttonPanel.revalidate();
                 buttonPanel.repaint();
+
             }
         });
 
@@ -89,6 +130,8 @@ public class Janela extends JFrame {
 
         // Adiciona os botões acima da tabela
         this.add(buttonPanel, BorderLayout.NORTH);
+
+        this.add(scrollPane, BorderLayout.CENTER);
 
         // Adiciona um ActionListener à tabela para editar um quarto ou reserva quando selecionado
         table.getSelectionModel().addListSelectionListener(event -> {
@@ -119,6 +162,36 @@ public class Janela extends JFrame {
         ImageIcon icon = new ImageIcon("logo.jpg"); // Cria um ícone
         this.setIconImage(icon.getImage()); // Adiciona o ícone
     }
+
+    private void filterBookings() {
+        String searchText = searchField.getText().trim().toLowerCase(); // Obtém o texto de pesquisa e o converte para minúsculas
+        String statusText = statusField.getText().trim(); // Obtém o texto do status
+
+        // Verifica se o statusText é um número inteiro
+        int statusId;
+        try {
+            statusId = Integer.parseInt(statusText); // Tenta converter o texto do status para um número inteiro
+        } catch (NumberFormatException e) {
+            // Se não for possível converter para um número, define o statusId como -1
+            statusId = -1;
+        }
+
+        // Filtra as reservas com base no texto de pesquisa e status
+        int finalStatusId = statusId;
+        List<Booking> filteredBookings = bookings.stream()
+                .filter(booking ->
+                        booking.getGuestFirstName().toLowerCase().contains(searchText) ||
+                                booking.getGuestLastName().toLowerCase().contains(searchText))
+                .filter(booking ->
+                        finalStatusId == -1 || booking.getStatusId() == finalStatusId) // Filtra as reservas se o statusId for -1 (ou seja, não foi fornecido um número válido) ou se o ID do status for igual ao statusId fornecido
+                .collect(Collectors.toList()); // Coleta as reservas filtradas em uma lista
+
+        // Cria um modelo de tabela com as reservas filtradas
+        DefaultTableModel bookingModel = createBookingTableModel(filteredBookings);
+        // Define o modelo de tabela com as reservas filtradas na tabela
+        table.setModel(bookingModel);
+    }
+
 
     // Método auxiliar para criar o modelo da tabela de quartos
     private DefaultTableModel createRoomTableModel(List<Room> rooms) {
@@ -156,7 +229,6 @@ public class Janela extends JFrame {
         }
         return model;
     }
-
 
     // Método para editar um quarto
     private void editRoom(int rowIndex, Room room) {
@@ -300,10 +372,10 @@ public class Janela extends JFrame {
     private void addNewBooking() {
         JFrame addFrame = new JFrame("Adicionar Reserva");
         addFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        addFrame.setSize(300, 250);
+        addFrame.setSize(300, 400);
         addFrame.setLocationRelativeTo(null);
 
-        JPanel panel = new JPanel(new GridLayout(9, 2));
+        JPanel panel = new JPanel(new GridLayout(0, 2));
 
         // Campos para os dados da reserva
         JLabel firstNameLabel = new JLabel("Guest First Name:");
@@ -320,7 +392,7 @@ public class Janela extends JFrame {
         JTextField childrenField = new JTextField();
         JLabel roomLabel = new JLabel("Room:");
         JTextField roomField = new JTextField();
-        JLabel priceLabel = new JLabel("Preço:");
+        JLabel priceLabel = new JLabel("Price:");
         JTextField priceField = new JTextField();
         priceField.setEditable(false);
         roomField.setEditable(false);
@@ -484,10 +556,10 @@ public class Janela extends JFrame {
         }
     }
 
-
     // Método auxiliar para formatar a data para "YYYY-MM-DD"
     private String formatDate(Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         return dateFormat.format(date);
     }
 }
+
