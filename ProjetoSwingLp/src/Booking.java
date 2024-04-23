@@ -11,6 +11,17 @@ public class Booking {
     private int numberOfChildren;
     private int roomId;
     private int statusId;
+    
+    public Booking(String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int roomId, int statusId) {
+        this.guestFirstName = guestFirstName;
+        this.guestLastName = guestLastName;
+        this.checkInDate = checkInDate;
+        this.checkOutDate = checkOutDate;
+        this.numberOfAdults = 0;
+        this.numberOfChildren = 0;
+        this.roomId = roomId;
+        this.statusId = statusId;
+    }
 
     public Booking(int id, String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int numberOfAdults, int numberOfChildren, int roomId, int statusId) {
         this.id = id;
