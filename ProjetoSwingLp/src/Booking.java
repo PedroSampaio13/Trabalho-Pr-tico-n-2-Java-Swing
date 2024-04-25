@@ -11,17 +11,7 @@ public class Booking {
     private int numberOfChildren;
     private int roomId;
     private int statusId;
-    
-    public Booking(String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int roomId, int statusId) {
-        this.guestFirstName = guestFirstName;
-        this.guestLastName = guestLastName;
-        this.checkInDate = checkInDate;
-        this.checkOutDate = checkOutDate;
-        this.numberOfAdults = 0;
-        this.numberOfChildren = 0;
-        this.roomId = roomId;
-        this.statusId = statusId;
-    }
+    Status status;
 
     public Booking(int id, String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int numberOfAdults, int numberOfChildren, int roomId, int statusId) {
         this.id = id;
@@ -33,6 +23,19 @@ public class Booking {
         this.numberOfChildren = numberOfChildren;
         this.roomId = roomId;
         this.statusId = statusId;
+        this.status = new Status(statusId);
+    }
+
+    public Booking(String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int roomId, int statusId) {
+        this.guestFirstName = guestFirstName;
+        this.guestLastName = guestLastName;
+        this.checkInDate = checkInDate;
+        this.checkOutDate = checkOutDate;
+        this.numberOfAdults = 0;
+        this.numberOfChildren = 0;
+        this.roomId = roomId;
+        this.statusId = statusId;
+        this.status = new Status(statusId);
     }
 
     public int getId() {
@@ -105,5 +108,42 @@ public class Booking {
 
     public void setStatusId(int statusId) {
         this.statusId = statusId;
+        this.status = new Status(statusId);
     }
+
+    // Classe interna Status
+    class Status {
+
+        private String state;
+
+        public Status(int statusId) {
+            // Defina a lógica para associar o ID do status à classe Status
+            switch (statusId) {
+                case 1:
+                    this.state = "Booked";
+                    break;
+                case 2:
+                    this.state = "CheckedIn";
+                    break;
+                case 3:
+                    this.state = "CheckedOut";
+                    break;
+                case 4:
+                    this.state = "Canceled";
+                    break;
+                default:
+                    this.state = "Unknown";
+                    break;
+            }
+        }
+
+        public String getState() {
+            return state;
+        }
+
+        public void setState(String state) {
+            this.state = state;
+        }
+    }
+
 }
