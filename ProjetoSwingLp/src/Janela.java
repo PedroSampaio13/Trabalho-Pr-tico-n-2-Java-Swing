@@ -6,8 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Comparator;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -121,7 +120,6 @@ public class Janela extends JFrame {
                 add(searchPanel, BorderLayout.SOUTH);
                 buttonPanel.revalidate();
                 buttonPanel.repaint();
-
             }
         });
 
@@ -165,25 +163,25 @@ public class Janela extends JFrame {
 
     private void filterBookings() {
         String searchText = searchField.getText().trim().toLowerCase(); // Obtém o texto de pesquisa e o converte para minúsculas
-        String statusText = statusField.getText().trim(); // Obtém o texto do status
+        String statusText = statusField.getText().trim().toLowerCase(); // Obtém o texto do status e o converte para minúsculas
 
-        // Verifica se o statusText é um número inteiro
-        int statusId;
-        try {
-            statusId = Integer.parseInt(statusText); // Tenta converter o texto do status para um número inteiro
-        } catch (NumberFormatException e) {
-            // Se não for possível converter para um número, define o statusId como -1
-            statusId = -1;
-        }
+        // Mapeia os textos de status para seus respectivos IDs
+        Map<String, Integer> statusMap = new HashMap<>();
+        statusMap.put("booked", 1);
+        statusMap.put("checkedin", 2);
+        statusMap.put("checkedout", 3);
+        statusMap.put("canceled", 4);
+
+        // Obtém o ID do status a partir do texto fornecido
+        int statusId = statusMap.getOrDefault(statusText, -1);
 
         // Filtra as reservas com base no texto de pesquisa e status
-        int finalStatusId = statusId;
         List<Booking> filteredBookings = bookings.stream()
                 .filter(booking ->
                         booking.getGuestFirstName().toLowerCase().contains(searchText) ||
                                 booking.getGuestLastName().toLowerCase().contains(searchText))
                 .filter(booking ->
-                        finalStatusId == -1 || booking.getStatusId() == finalStatusId) // Filtra as reservas se o statusId for -1 (ou seja, não foi fornecido um número válido) ou se o ID do status for igual ao statusId fornecido
+                        statusId == -1 || booking.getStatusId() == statusId) // Filtra as reservas se o statusId for -1 (ou seja, não foi fornecido um número válido) ou se o ID do status for igual ao statusId fornecido
                 .collect(Collectors.toList()); // Coleta as reservas filtradas em uma lista
 
         // Cria um modelo de tabela com as reservas filtradas
@@ -204,11 +202,10 @@ public class Janela extends JFrame {
         return model;
     }
 
-    // Método auxiliar para criar o modelo da tabela de reservas (bookings)
     private DefaultTableModel createBookingTableModel(List<Booking> bookings) {
         String[] columnNames = {"Guest First Name", "Guest Last Name", "Room", "Check-in", "Check-out", "Status"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy"); // Formato desejado para as datas
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); // Formato desejado para as datas
 
         for (Booking booking : bookings) {
             // Obtém o objeto Room correspondente ao ID do quarto na reserva
@@ -224,7 +221,10 @@ public class Janela extends JFrame {
             String checkInDateFormatted = dateFormat.format(booking.getCheckInDate());
             String checkOutDateFormatted = dateFormat.format(booking.getCheckOutDate());
 
-            Object[] rowData = {booking.getGuestFirstName(), booking.getGuestLastName(), roomNumber, checkInDateFormatted, checkOutDateFormatted, booking.getStatusId()};
+            // Obtém o estado da reserva
+            String statusString = booking.status.getState(); // Corrigido para chamar getStatus() e então getState()
+
+            Object[] rowData = {booking.getGuestFirstName(), booking.getGuestLastName(), roomNumber, checkInDateFormatted, checkOutDateFormatted, statusString};
             model.addRow(rowData);
         }
         return model;
@@ -288,38 +288,53 @@ public class Janela extends JFrame {
         editFrame.setVisible(true);
     }
 
-    // Método para editar uma reserva
     private void editBooking(int rowIndex, Booking booking) {
-        JFrame editFrame = new JFrame("Editar Reserva");
+        JFrame editFrame = new JFrame(booking.getGuestFirstName() + " " + booking.getGuestLastName());
         editFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        editFrame.setSize(300, 400);
+        editFrame.setSize(400, 300);
         editFrame.setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridLayout(0, 2));
 
         JLabel firstNameLabel = new JLabel("Guest First Name:");
         JTextField firstNameField = new JTextField(booking.getGuestFirstName());
+
         JLabel lastNameLabel = new JLabel("Guest Last Name:");
         JTextField lastNameField = new JTextField(booking.getGuestLastName());
-        JLabel roomLabel = new JLabel("Room:");
-        JTextField roomField = new JTextField(String.valueOf(booking.getRoomId()));
+
         JLabel checkInLabel = new JLabel("Check-in:");
         JTextField checkInField = new JTextField(booking.getCheckInDate().toString());
+
         JLabel checkOutLabel = new JLabel("Check-out:");
         JTextField checkOutField = new JTextField(booking.getCheckOutDate().toString());
+
         JLabel statusLabel = new JLabel("Status:");
-        JTextField statusField = new JTextField(String.valueOf(booking.getStatusId()));
+        JTextField statusField = new JTextField(booking.status.getState());
+
         JLabel adultsLabel = new JLabel("Adults:");
         JTextField adultsField = new JTextField(String.valueOf(booking.getNumberOfAdults()));
+
         JLabel childrenLabel = new JLabel("Children:");
         JTextField childrenField = new JTextField(String.valueOf(booking.getNumberOfChildren()));
+
+        JLabel roomLabel = new JLabel("Room: ");
+        Room room = availableRooms.stream()
+                .filter(r -> r.getId() == booking.getRoomId())
+                .findFirst()
+                .orElse(null);
+        String roomInfo = (room != null) ? room.getRoomNumber() + " at $" + room.getPrice() + " per night" : "N/A";
+        roomLabel.setText(roomLabel.getText() + roomInfo);
+
+        // Defina todos os campos de texto inicialmente editáveis
+        JTextField[] textFields = {firstNameField, lastNameField, checkInField, checkOutField, statusField, adultsField, childrenField};
+        for (JTextField field : textFields) {
+            field.setEditable(true);
+        }
 
         panel.add(firstNameLabel);
         panel.add(firstNameField);
         panel.add(lastNameLabel);
         panel.add(lastNameField);
-        panel.add(roomLabel);
-        panel.add(roomField);
         panel.add(checkInLabel);
         panel.add(checkInField);
         panel.add(checkOutLabel);
@@ -330,42 +345,68 @@ public class Janela extends JFrame {
         panel.add(adultsField);
         panel.add(childrenLabel);
         panel.add(childrenField);
+        panel.add(roomLabel);
 
-        JButton saveButton = new JButton("Salvar");
-        saveButton.addActionListener(new ActionListener() {
+        JButton checkInButton = new JButton("Check-in");
+        JButton checkOutButton = new JButton("Check-out");
+        JButton cancelBookingButton = new JButton("Cancelar Reserva");
+
+        checkInButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                booking.setGuestFirstName(firstNameField.getText());
-                booking.setGuestLastName(lastNameField.getText());
-                booking.setRoomId(Integer.parseInt(roomField.getText()));
-                // Você precisa lidar com a conversão de datas e configurá-las adequadamente
-                booking.setStatusId(Integer.parseInt(statusField.getText()));
-                booking.setNumberOfAdults(Integer.parseInt(adultsField.getText()));
-                booking.setNumberOfChildren(Integer.parseInt(childrenField.getText()));
-                table.getModel().setValueAt(booking.getGuestFirstName(), rowIndex, 0);
-                table.getModel().setValueAt(booking.getGuestLastName(), rowIndex, 1);
-                table.getModel().setValueAt(booking.getRoomId(), rowIndex, 2);
-                table.getModel().setValueAt(booking.getCheckInDate(), rowIndex, 3);
-                table.getModel().setValueAt(booking.getCheckOutDate(), rowIndex, 4);
-                table.getModel().setValueAt(booking.getStatusId(), rowIndex, 5);
-                table.getModel().setValueAt(booking.getNumberOfAdults(), rowIndex, 6);
-                table.getModel().setValueAt(booking.getNumberOfChildren(), rowIndex, 7);
+                booking.setStatusId(2);
+                table.getModel().setValueAt(booking.status.getState(), rowIndex, 5);
+                // Após o check-in, torna todos os campos de texto não editáveis
+                for (JTextField field : textFields) {
+                    field.setEditable(false);
+                }
+                // Oculta o botão "Check-in" após o check-in ser feito
+                checkInButton.setVisible(false);
+                checkOutButton.setVisible(true);
                 editFrame.dispose();
             }
         });
 
-        JButton cancelButton = new JButton("Cancelar");
-        cancelButton.addActionListener(new ActionListener() {
+        checkOutButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                booking.setStatusId(3);
+                table.getModel().setValueAt(booking.status.getState(), rowIndex, 5);
                 editFrame.dispose();
             }
         });
 
-        panel.add(saveButton);
-        panel.add(cancelButton);
+        // Define o botão "Cancelar Reserva" como visível apenas se o status for "Reservado"
+        cancelBookingButton.setVisible(booking.getStatusId() == 1);
+        cancelBookingButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                booking.setStatusId(4);
+                table.getModel().setValueAt(booking.status.getState(), rowIndex, 5);
+                cancelBookingButton.setVisible(false);
+                editFrame.dispose();
+            }
+        });
 
-        editFrame.add(panel);
+        // Torna o botão "Check-in" inicialmente visível se o status for "Reservado"
+        // e o botão "Check-out" visível se o status for "Check-in"
+        checkInButton.setVisible(booking.getStatusId() == 1);
+        checkOutButton.setVisible(booking.getStatusId() == 2);
+
+        if (booking.getStatusId() == 2 || booking.getStatusId() == 3) {
+            for (JTextField field : textFields) {
+                field.setEditable(false);
+            }
+
+        }
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(checkInButton);
+        buttonPanel.add(checkOutButton);
+        buttonPanel.add(cancelBookingButton);
+
+        editFrame.add(panel, BorderLayout.CENTER);
+        editFrame.add(buttonPanel, BorderLayout.SOUTH);
         editFrame.setVisible(true);
     }
 
