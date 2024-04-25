@@ -208,7 +208,7 @@ public class Janela extends JFrame {
     private DefaultTableModel createBookingTableModel(List<Booking> bookings) {
         String[] columnNames = {"Guest First Name", "Guest Last Name", "Room", "Check-in", "Check-out", "Status"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); // Formato desejado para as datas
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy"); // Formato desejado para as datas
 
         for (Booking booking : bookings) {
             // Obtém o objeto Room correspondente ao ID do quarto na reserva
@@ -292,10 +292,10 @@ public class Janela extends JFrame {
     private void editBooking(int rowIndex, Booking booking) {
         JFrame editFrame = new JFrame("Editar Reserva");
         editFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        editFrame.setSize(300, 250);
+        editFrame.setSize(300, 400);
         editFrame.setLocationRelativeTo(null);
 
-        JPanel panel = new JPanel(new GridLayout(7, 2));
+        JPanel panel = new JPanel(new GridLayout(0, 2));
 
         JLabel firstNameLabel = new JLabel("Guest First Name:");
         JTextField firstNameField = new JTextField(booking.getGuestFirstName());
@@ -430,7 +430,7 @@ public class Janela extends JFrame {
 
                 Date checkInDate = null;
                 Date checkOutDate = null;
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 
                 try {
                     checkInDate = dateFormat.parse(checkInField.getText());
@@ -483,7 +483,7 @@ public class Janela extends JFrame {
                 int numberOfChildren = Integer.parseInt(childrenField.getText());
                 Date checkInDate = null;
                 Date checkOutDate = null;
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
                 try {
                     checkInDate = dateFormat.parse(checkInField.getText());
                     checkOutDate = dateFormat.parse(checkOutField.getText());
@@ -558,7 +558,7 @@ public class Janela extends JFrame {
 
     // Método auxiliar para formatar a data para "YYYY-MM-DD"
     private String formatDate(Date date) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
         return dateFormat.format(date);
     }
 }
