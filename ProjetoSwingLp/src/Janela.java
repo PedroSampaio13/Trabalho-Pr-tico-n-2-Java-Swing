@@ -1,6 +1,6 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Date;
 
 public class Janela extends JFrame {
 
@@ -18,7 +19,8 @@ public class Janela extends JFrame {
     private JButton addBookingButton; // Botão para adicionar reserva
     private JTextField searchField;
     private JTextField statusField;
-
+    private DefaultTableModel todayBookingsTableModel;
+    private DefaultTableModel checkInTableModel;
 
     Janela(List<Room> availableRooms, List<Booking> bookings) {
         this.availableRooms = availableRooms;
@@ -58,6 +60,7 @@ public class Janela extends JFrame {
 
         // Adiciona botões para alternar entre quartos e reservas (bookings)
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton homepageButton = new JButton("Homepage");
         JButton roomsButton = new JButton("Quartos");
         JButton bookingsButton = new JButton("Reservas");
 
@@ -91,6 +94,42 @@ public class Janela extends JFrame {
         statusField.setVisible(false);
         remove(searchPanel);
 
+        homepageButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JPanel homepagePanel = new JPanel(new GridLayout(2, 1)); // Um GridLayout para organizar duas tabelas em colunas
+
+                // Tabela para reservas com check-in hoje
+                DefaultTableModel todayBookingsTableModel = createRestrictedBookingsTableModel(1); // statusID 1 (Booked)
+                JTable todayBookingsTable = new JTable(todayBookingsTableModel);
+                todayBookingsTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+                todayBookingsTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JCheckBox()));
+                JScrollPane todayScrollPane = new JScrollPane(todayBookingsTable);
+                homepagePanel.add(new JLabel("Reservas com Check-In Hoje (Booked)"));
+                homepagePanel.add(todayScrollPane);
+
+                // Tabela para reservas com check-out hoje
+                DefaultTableModel checkInTableModel = createRestrictedBookingsTableModel(2); // statusID 2 (CheckIn)
+                JTable checkInTable = new JTable(checkInTableModel);
+                checkInTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+                checkInTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JCheckBox()));
+                JScrollPane checkInScrollPane = new JScrollPane(checkInTable);
+                homepagePanel.add(new JLabel("Reservas com Check-Out Hoje (CheckIn)"));
+                homepagePanel.add(checkInScrollPane);
+
+                // Crie um novo painel que conterá buttonPanel e homepagePanel
+                JPanel newPanel = new JPanel(new BorderLayout());
+                newPanel.add(buttonPanel, BorderLayout.NORTH); // Adicione o buttonPanel ao novo painel na parte superior
+                newPanel.add(homepagePanel, BorderLayout.CENTER); // Adicione o homepagePanel ao novo painel no centro
+
+                // Atualize a exibição para mostrar a página Homepage
+                getContentPane().removeAll(); // Remove todos os componentes da janela atual
+                getContentPane().add(newPanel, BorderLayout.CENTER); // Adiciona o novo painel à janela
+                getContentPane().revalidate(); // Atualiza a exibição
+                getContentPane().repaint(); // Repinta a tela para mostrar as alterações
+            }
+        });
+
         roomsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -104,6 +143,13 @@ public class Janela extends JFrame {
                 searchField.setVisible(false);
                 statusField.setVisible(false);
                 remove(searchPanel);
+
+                // Atualize a exibição para mostrar a página de quartos
+                getContentPane().removeAll(); // Remove todos os componentes da janela atual
+                getContentPane().add(buttonPanel, BorderLayout.NORTH); // Adiciona o buttonPanel de volta à parte superior
+                getContentPane().add(scrollPane, BorderLayout.CENTER); // Adiciona a tabela de quartos ao centro
+                getContentPane().revalidate(); // Atualiza a exibição
+                getContentPane().repaint(); // Repinta a tela para mostrar as alterações
             }
         });
 
@@ -120,9 +166,18 @@ public class Janela extends JFrame {
                 add(searchPanel, BorderLayout.SOUTH);
                 buttonPanel.revalidate();
                 buttonPanel.repaint();
+
+                // Atualize a exibição para mostrar a página de reservas
+                getContentPane().removeAll(); // Remove todos os componentes da janela atual
+                getContentPane().add(buttonPanel, BorderLayout.NORTH); // Adiciona o buttonPanel de volta à parte superior
+                getContentPane().add(scrollPane, BorderLayout.CENTER); // Adiciona a tabela de reservas ao centro
+                getContentPane().add(searchPanel, BorderLayout.SOUTH); // Adiciona o painel de pesquisa na parte inferior
+                getContentPane().revalidate(); // Atualiza a exibição
+                getContentPane().repaint(); // Repinta a tela para mostrar as alterações
             }
         });
 
+        buttonPanel.add(homepageButton);
         buttonPanel.add(roomsButton);
         buttonPanel.add(bookingsButton);
 
@@ -160,6 +215,115 @@ public class Janela extends JFrame {
         ImageIcon icon = new ImageIcon("logo.jpg"); // Cria um ícone
         this.setIconImage(icon.getImage()); // Adiciona o ícone
     }
+
+    // Método para criar o modelo da tabela restrita aos status específicos
+    private DefaultTableModel createRestrictedBookingsTableModel(int statusId) {
+        String[] columnNames = {"Guest First Name", "Guest Last Name", "Room", "Action"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+
+        // Adicionar as reservas com status específico ao modelo da tabela
+        for (Booking booking : bookings) {
+            if (booking.getStatusId() == statusId) {
+                // Encontre o quarto correspondente à reserva
+                Room room = availableRooms.stream()
+                        .filter(r -> r.getId() == booking.getRoomId())
+                        .findFirst()
+                        .orElse(null);
+
+                // Verifique se o quarto foi encontrado e adicione o número do quarto à tabela
+                if (room != null) {
+                    model.addRow(new Object[]{booking.getGuestFirstName(), booking.getGuestLastName(), room.getRoomNumber(), ""});
+                }
+            }
+        }
+        return model;
+    }
+
+    // Classe ButtonRenderer para renderizar o botão na célula da tabela
+    class ButtonRenderer extends JButton implements TableCellRenderer {
+
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setText("Check-In"); // Defina o texto do botão
+            return this;
+        }
+    }
+
+    // Classe ButtonEditor para permitir a edição do botão na célula da tabela
+    class ButtonEditor extends DefaultCellEditor {
+
+        private JButton button;
+        private String label;
+        private boolean isPushed;
+
+        public ButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton();
+            button.setOpaque(true);
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    fireEditingStopped(); // Notifica que a edição foi interrompida
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            label = (value == null) ? "" : value.toString();
+            button.setText(label);
+            isPushed = true;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (isPushed) {
+                // Verifica se o botão "Check-In" foi pressionado
+                if ("Check-In".equals(label)) {
+                    // Obtém a linha atualmente em edição
+                    int editingRow = table.getEditingRow();
+
+                    // Verifica se a edição está ocorrendo em uma linha válida
+                    if (editingRow != -1) {
+                        // Obtém o índice da linha editada no modelo da tabela
+                        int modelRow = table.convertRowIndexToModel(editingRow);
+
+                        // Verifica se o índice da linha está dentro dos limites do modelo de reservas
+                        if (modelRow >= 0 && modelRow < bookings.size()) {
+                            // Obtém a reserva correspondente à linha editada
+                            Booking selectedBooking = bookings.get(modelRow);
+
+                            // Atualiza o status da reserva para refletir o check-in
+                            selectedBooking.setStatusId(2); // Supondo que 2 seja o ID do status de check-in
+
+                            // Atualiza o texto da célula na tabela para refletir o novo status
+                            table.getModel().setValueAt("CheckedIn", editingRow, 3);
+
+                            // Aqui você pode adicionar outras operações, como salvar a reserva no banco de dados, se necessário.
+                        }
+                    }
+                }
+            }
+            isPushed = false;
+            return label;
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
+        }
+
+        @Override
+        protected void fireEditingStopped() {
+            super.fireEditingStopped();
+        }
+        }
 
     private void filterBookings() {
         String searchText = searchField.getText().trim().toLowerCase(); // Obtém o texto de pesquisa e o converte para minúsculas
@@ -202,10 +366,37 @@ public class Janela extends JFrame {
         return model;
     }
 
+    private DefaultTableModel createBookedBookingTableModelHomeCheckIn(List<Booking> bookings) {
+        String[] columnNames = {"Guest First Name", "Guest Last Name", "Room", "Check-out"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy"); // Formato desejado para as datas
+
+        for (Booking booking : bookings) {
+            // Check if the booking status is BOOKED (status ID equals 1)
+            if (booking.getStatusId() == 1) {
+                // Obtém o objeto Room correspondente ao ID do quarto na reserva
+                Room room = availableRooms.stream()
+                        .filter(r -> r.getId() == booking.getRoomId())
+                        .findFirst()
+                        .orElse(null);
+
+                // Verifica se o objeto Room foi encontrado
+                String roomNumber = (room != null) ? String.valueOf(room.getRoomNumber()) : "N/A";
+
+                // Formata as datas de check-in e check-out para o formato desejado
+                String checkOutDateFormatted = dateFormat.format(booking.getCheckOutDate());
+
+                Object[] rowData = {booking.getGuestFirstName(), booking.getGuestLastName(), roomNumber, checkOutDateFormatted};
+                model.addRow(rowData);
+            }
+        }
+        return model;
+    }
+
     private DefaultTableModel createBookingTableModel(List<Booking> bookings) {
         String[] columnNames = {"Guest First Name", "Guest Last Name", "Room", "Check-in", "Check-out", "Status"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd"); // Formato desejado para as datas
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy"); // Formato desejado para as datas
 
         for (Booking booking : bookings) {
             // Obtém o objeto Room correspondente ao ID do quarto na reserva
@@ -597,10 +788,11 @@ public class Janela extends JFrame {
         }
     }
 
-    // Método auxiliar para formatar a data para "YYYY-MM-DD"
+    // Método auxiliar para formatar a data para "dd-MM-yyyy"
     private String formatDate(Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
         return dateFormat.format(date);
     }
+
 }
 
