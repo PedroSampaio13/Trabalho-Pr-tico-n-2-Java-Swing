@@ -96,7 +96,7 @@ public class Janela extends JFrame {
         homepageButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JPanel homepagePanel = new JPanel(new GridLayout(2, 1)); // Um GridLayout para organizar duas tabelas em colunas
+                JPanel homepagePanel = new JPanel(new GridLayout(4, 1)); // GridLayout para organizar em quatro linhas
 
                 // Tabela para reservas com check-in hoje
                 DefaultTableModel todayBookingsTableModel = createRestrictedBookingsTableModel(1); // statusID 1 (Booked)
@@ -105,23 +105,42 @@ public class Janela extends JFrame {
                 todayBookingsTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
                 todayBookingsTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JCheckBox()));
                 JScrollPane todayScrollPane = new JScrollPane(todayBookingsTable);
-                homepagePanel.add(new JLabel("Reservas com Check-In Hoje (Booked)"));
-                homepagePanel.add(todayScrollPane);
+
+                // Título "Checking In Today" e a tabela correspondente
+                JPanel checkInPanel = new JPanel(new BorderLayout());
+                JLabel checkInTitle = new JLabel("Checking In Today");
+                checkInTitle.setHorizontalAlignment(SwingConstants.CENTER);
+                checkInTitle.setFont(new Font("Arial", Font.BOLD, 18)); // Tamanho e estilo da fonte ajustados
+                checkInPanel.add(Box.createVerticalStrut(20)); // Espaço em cima do título
+                checkInPanel.add(checkInTitle, BorderLayout.NORTH);
+                checkInPanel.add(todayScrollPane, BorderLayout.CENTER);
+                homepagePanel.add(checkInPanel);
 
                 // Tabela para reservas com check-out hoje
-                DefaultTableModel checkInTableModel = createRestrictedBookingsTableModel(2); // statusID 2 (CheckIn)
-                JTable checkInTable = new JTable(checkInTableModel);
-                checkInTable.setName("CheckOutTable");
-                checkInTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
-                checkInTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JCheckBox()));
-                JScrollPane checkInScrollPane = new JScrollPane(checkInTable);
-                homepagePanel.add(new JLabel("Reservas com Check-Out Hoje (CheckIn)"));
-                homepagePanel.add(checkInScrollPane);
+                DefaultTableModel checkOutTableModel = createRestrictedBookingsTableModel(2); // statusID 2 (CheckIn)
+                JTable checkOutTable = new JTable(checkOutTableModel);
+                checkOutTable.setName("CheckOutTable");
+                checkOutTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+                checkOutTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JCheckBox()));
+                JScrollPane checkOutScrollPane = new JScrollPane(checkOutTable);
+
+                // Título "Checking Out Today" e a tabela correspondente
+                JPanel checkOutPanel = new JPanel(new BorderLayout());
+                JLabel checkOutTitle = new JLabel("Checking Out Today");
+                checkOutTitle.setHorizontalAlignment(SwingConstants.CENTER);
+                checkOutTitle.setFont(new Font("Arial", Font.BOLD, 18)); // Tamanho e estilo da fonte ajustados
+                checkOutPanel.add(Box.createVerticalStrut(20)); // Espaço em cima do título
+                checkOutPanel.add(checkOutTitle, BorderLayout.NORTH);
+                checkOutPanel.add(checkOutScrollPane, BorderLayout.CENTER);
+                homepagePanel.add(checkOutPanel);
+
+                // Adicione um espaço entre as seções
+                homepagePanel.add(new JPanel()); // Adiciona um painel vazio para criar um espaço
 
                 // Crie um novo painel que conterá buttonPanel e homepagePanel
                 JPanel newPanel = new JPanel(new BorderLayout());
-                newPanel.add(buttonPanel, BorderLayout.NORTH); // Adicione o buttonPanel ao novo painel na parte superior
-                newPanel.add(homepagePanel, BorderLayout.CENTER); // Adicione o homepagePanel ao novo painel no centro
+                newPanel.add(buttonPanel, BorderLayout.NORTH); // Adiciona o buttonPanel ao novo painel na parte superior
+                newPanel.add(homepagePanel, BorderLayout.CENTER); // Adiciona o homepagePanel ao novo painel no centro
 
                 // Atualize a exibição para mostrar a página Homepage
                 getContentPane().removeAll(); // Remove todos os componentes da janela atual
@@ -219,35 +238,46 @@ public class Janela extends JFrame {
 
     // Método para criar o modelo da tabela restrita aos status específicos
     private DefaultTableModel createRestrictedBookingsTableModel(int statusId) {
-        String[] columnNames = {"Guest First Name", "Guest Last Name", "Room", "Action"};
+        String dateColumnName = (statusId == 1) ? "Check-Out" : "Check-In"; // Nome da coluna dependendo do statusId
+        String[] columnNames = {"Guest First Name", "Guest Last Name", "Room", "Action", dateColumnName};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
         // Obtém a data atual
         Date currentDate = new Date();
 
-        // Adiciona as reservas com status específico para o dia atual ao modelo da tabela
-        for (Booking booking : bookings) {
-            if (booking.getStatusId() == statusId) {
-                Date checkInDate = booking.getCheckInDate();
-                Date checkOutDate = booking.getCheckOutDate();
+        // Formato da data "dd-MM-yyyy"
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 
-                // Verifica se a reserva tem check-in ou check-out para o dia atual
-                if (isSameDay(currentDate, checkInDate) || isSameDay(currentDate, checkOutDate)) {
-                    // Encontre o quarto correspondente à reserva
+        // Adiciona as reservas com status específico ao modelo da tabela
+        for (Booking booking : bookings) {
+            // Verifica se o status da reserva corresponde ao status desejado
+            if (booking.getStatusId() == statusId) {
+                // Verifica se a reserva é para o dia atual
+                if ((statusId == 1 && isSameDay(currentDate, booking.getCheckInDate())) ||
+                        (statusId == 2 && isSameDay(currentDate, booking.getCheckOutDate()))) {
+                    // Encontra o quarto correspondente à reserva
                     Room room = availableRooms.stream()
                             .filter(r -> r.getId() == booking.getRoomId())
                             .findFirst()
                             .orElse(null);
 
-                    // Verifica se o quarto foi encontrado e adicione o número do quarto à tabela
+                    // Verifica se o quarto foi encontrado
                     if (room != null) {
-                        model.addRow(new Object[]{booking.getGuestFirstName(), booking.getGuestLastName(), room.getRoomNumber(), ""});
+                        String action = (statusId == 1) ? "Check-In" : "Check-Out"; // Define a ação com base no statusId
+                        String firstName = booking.getGuestFirstName();
+                        String lastName = booking.getGuestLastName();
+                        String roomNumber = String.valueOf(room.getRoomNumber());
+                        String date = (statusId == 1) ? dateFormat.format(booking.getCheckOutDate()) : dateFormat.format(booking.getCheckInDate()); // Formata a data
+
+                        // Adiciona uma linha à tabela com os dados da reserva, a ação correspondente e a data
+                        model.addRow(new Object[]{firstName, lastName, roomNumber, action, date});
                     }
                 }
             }
         }
         return model;
     }
+
 
     // Método para verificar se duas datas são do mesmo dia
     private boolean isSameDay(Date date1, Date date2) {
@@ -269,10 +299,10 @@ public class Janela extends JFrame {
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            // Verifica se o botão está na tabela de "Reservas com Check-In Hoje" ou na tabela de "Reservas com Check-Out Hoje"
-            if (table.getName().equals("CheckInTable")) {
+            // Verifica se o nome da tabela não é nulo e se é igual a "CheckInTable"
+            if (table.getName() != null && table.getName().equals("CheckInTable")) {
                 setText("Check-In"); // Defina o texto do botão como "Check-In" para a tabela de "Reservas com Check-In Hoje"
-            } else if (table.getName().equals("CheckOutTable")) {
+            } else if (table.getName() != null && table.getName().equals("CheckOutTable")) {
                 setText("Check-Out"); // Defina o texto do botão como "Check-Out" para a tabela de "Reservas com Check-Out Hoje"
             }
             return this;
@@ -310,9 +340,11 @@ public class Janela extends JFrame {
                                 // Exibe uma mensagem de confirmação
                                 JOptionPane.showMessageDialog(Janela.this, "Check-Out realizado com sucesso!");
                             }
-                            // Atualiza as tabelas
-                            updateHomepageTable();
-                            updateBookingsTable();
+                            if (table.getName().equals("CheckInTable")) {
+                                updateTodayBookingsTable();
+                            } else if (table.getName().equals("CheckOutTable")) {
+                                updateCheckOutTable();
+                            }
                         }
                     }
                     fireEditingStopped(); // Notifica que a edição foi interrompida
@@ -327,34 +359,70 @@ public class Janela extends JFrame {
             button.setOpaque(true);
         }
 
-        // Método para atualizar a tabela de homepage
-        private void updateHomepageTable() {
-            System.out.println("Atualizando tabela de homepage..."); // Adiciona mensagem de log
-
+        // Método para atualizar a tabela de "Reservas com Check-In Hoje"
+        private void updateTodayBookingsTable() {
             DefaultTableModel todayBookingsTableModel = createRestrictedBookingsTableModel(1);
-            JTable todayBookingsTable = new JTable(todayBookingsTableModel);
-            todayBookingsTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
-            todayBookingsTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JCheckBox()));
-            JScrollPane todayScrollPane = new JScrollPane(todayBookingsTable);
-
-            // Substitui a tabela de homepage pela nova tabela atualizada
+            // Obtém o painel de homepage
             JPanel homepagePanel = (JPanel) getContentPane().getComponent(0);
-            homepagePanel.remove(1); // Remove a tabela antiga
-            homepagePanel.add(todayScrollPane); // Adiciona a nova tabela
 
-            // Revalida e repinta o painel para garantir que a nova tabela seja exibida corretamente
-            homepagePanel.revalidate();
-            homepagePanel.repaint();
+            // Encontra o componente de scroll pane atual
+            JScrollPane scrollPane = findScrollPane(homepagePanel);
+
+            // Verifica se o componente de scroll pane foi encontrado
+            if (scrollPane != null) {
+                // Cria uma nova tabela com o modelo fornecido
+                JTable todayBookingsTable = new JTable(todayBookingsTableModel);
+                todayBookingsTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+                todayBookingsTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JCheckBox()));
+
+                // Remove o componente de scroll pane atual
+                homepagePanel.remove(scrollPane);
+
+                // Adiciona o novo componente de scroll pane com a nova tabela
+                homepagePanel.add(new JScrollPane(todayBookingsTable));
+
+                // Revalida e repinta o painel para garantir que as alterações sejam refletidas
+                homepagePanel.revalidate();
+                homepagePanel.repaint();
+            }
         }
 
-        // Método para atualizar a tabela de reservas (bookings)
-        private void updateBookingsTable() {
-            System.out.println("Atualizando tabela de reservas (bookings)..."); // Adiciona mensagem de log
+        // Método para atualizar a tabela de "Reservas com Check-Out Hoje"
+        private void updateCheckOutTable() {
+            DefaultTableModel todayBookingsTableModel = createRestrictedBookingsTableModel(2);
+            // Obtém o painel de homepage
+            JPanel homepagePanel = (JPanel) getContentPane().getComponent(0);
 
-            DefaultTableModel bookingModel = createBookingTableModel(bookings);
-            table.setModel(bookingModel);
-            table.revalidate();
-            table.repaint();
+            // Encontra o componente de scroll pane atual
+            JScrollPane scrollPane = findScrollPane(homepagePanel);
+
+            // Verifica se o componente de scroll pane foi encontrado
+            if (scrollPane != null) {
+                // Cria uma nova tabela com o modelo fornecido
+                JTable todayBookingsTable = new JTable(todayBookingsTableModel);
+                todayBookingsTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer());
+                todayBookingsTable.getColumnModel().getColumn(3).setCellEditor(new ButtonEditor(new JCheckBox()));
+
+                // Remove o componente de scroll pane atual
+                homepagePanel.remove(scrollPane);
+
+                // Adiciona o novo componente de scroll pane com a nova tabela
+                homepagePanel.add(new JScrollPane(todayBookingsTable));
+
+                // Revalida e repinta o painel para garantir que as alterações sejam refletidas
+                homepagePanel.revalidate();
+                homepagePanel.repaint();
+            }
+        }
+
+        // Método para encontrar o componente JScrollPane dentro do JPanel
+        private JScrollPane findScrollPane(JPanel panel) {
+            for (Component component : panel.getComponents()) {
+                if (component instanceof JScrollPane) {
+                    return (JScrollPane) component;
+                }
+            }
+            return null;
         }
 
         @Override
@@ -526,8 +594,9 @@ public class Janela extends JFrame {
     private void editBooking(int rowIndex, Booking booking) {
         JFrame editFrame = new JFrame(booking.getGuestFirstName() + " " + booking.getGuestLastName());
         editFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        editFrame.setSize(400, 300);
+        editFrame.setSize(600, 300);
         editFrame.setLocationRelativeTo(null);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
         JPanel panel = new JPanel(new GridLayout(0, 2));
 
@@ -538,13 +607,10 @@ public class Janela extends JFrame {
         JTextField lastNameField = new JTextField(booking.getGuestLastName());
 
         JLabel checkInLabel = new JLabel("Check-in:");
-        JTextField checkInField = new JTextField(booking.getCheckInDate().toString());
+        JTextField checkInField = new JTextField(dateFormat.format(booking.getCheckInDate()));
 
         JLabel checkOutLabel = new JLabel("Check-out:");
-        JTextField checkOutField = new JTextField(booking.getCheckOutDate().toString());
-
-        JLabel statusLabel = new JLabel("Status:");
-        JTextField statusField = new JTextField(booking.status.getState());
+        JTextField checkOutField = new JTextField(dateFormat.format(booking.getCheckOutDate()));
 
         JLabel adultsLabel = new JLabel("Adults:");
         JTextField adultsField = new JTextField(String.valueOf(booking.getNumberOfAdults()));
@@ -561,7 +627,7 @@ public class Janela extends JFrame {
         roomLabel.setText(roomLabel.getText() + roomInfo);
 
         // Defina todos os campos de texto inicialmente editáveis
-        JTextField[] textFields = {firstNameField, lastNameField, checkInField, checkOutField, statusField, adultsField, childrenField};
+        JTextField[] textFields = {firstNameField, lastNameField, checkInField, checkOutField, adultsField, childrenField};
         for (JTextField field : textFields) {
             field.setEditable(true);
         }
@@ -574,17 +640,17 @@ public class Janela extends JFrame {
         panel.add(checkInField);
         panel.add(checkOutLabel);
         panel.add(checkOutField);
-        panel.add(statusLabel);
-        panel.add(statusField);
         panel.add(adultsLabel);
         panel.add(adultsField);
         panel.add(childrenLabel);
         panel.add(childrenField);
         panel.add(roomLabel);
 
+        JButton getRoomButton = new JButton("Get Available Room");
         JButton checkInButton = new JButton("Check-in");
         JButton checkOutButton = new JButton("Check-out");
         JButton cancelBookingButton = new JButton("Cancelar Reserva");
+        JButton saveChangesButton = new JButton("Salvar Alterações");
 
         checkInButton.addActionListener(new ActionListener() {
             @Override
@@ -598,6 +664,7 @@ public class Janela extends JFrame {
                 // Oculta o botão "Check-in" após o check-in ser feito
                 checkInButton.setVisible(false);
                 checkOutButton.setVisible(true);
+                saveChangesButton.setVisible(false); // Esconde o botão de salvar após o check-in
                 editFrame.dispose();
             }
         });
@@ -623,6 +690,56 @@ public class Janela extends JFrame {
             }
         });
 
+        // Define o botão "Salvar Alterações" como visível apenas se o status for "Reservado"
+        saveChangesButton.setVisible(booking.getStatusId() == 1);
+        saveChangesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Salvar as alterações aqui
+                booking.setGuestFirstName(firstNameField.getText());
+                booking.setGuestLastName(lastNameField.getText());
+                // Você precisa tratar exceções para a conversão de data aqui
+                try {
+                    booking.setCheckInDate(dateFormat.parse(checkInField.getText()));
+                    booking.setCheckOutDate(dateFormat.parse(checkOutField.getText()));
+                } catch (ParseException ex) {
+                    ex.printStackTrace();
+                    // Trate o erro de formatação de data adequadamente aqui
+                }
+                booking.setNumberOfAdults(Integer.parseInt(adultsField.getText()));
+                booking.setNumberOfChildren(Integer.parseInt(childrenField.getText()));
+
+                // Atualizar a informação do quarto com base nas informações atualizadas
+                int numberOfAdults = Integer.parseInt(adultsField.getText());
+                int numberOfChildren = Integer.parseInt(childrenField.getText());
+                Date checkInDate = null;
+                Date checkOutDate = null;
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                try {
+                    checkInDate = dateFormat.parse(checkInField.getText());
+                    checkOutDate = dateFormat.parse(checkOutField.getText());
+                } catch (ParseException ex) {
+                    ex.printStackTrace(); // Ou tratamento apropriado para a exceção
+                }
+                Room updatedRoom = getAvailableRoom(availableRooms, bookings, numberOfAdults, numberOfChildren, checkInDate, checkOutDate);
+                if (updatedRoom != null) {
+                    // Atualiza o quarto na reserva diretamente
+                    booking.setRoomId(updatedRoom.getId());
+                    String roomInfo = "Room " + updatedRoom.getRoomNumber() + " at $" + updatedRoom.getPrice() + " per night";
+                    roomLabel.setText(roomInfo); // Atualiza a informação do quarto na interface do usuário
+                } else {
+                    String roomInfo = "N/A";
+                    roomLabel.setText(roomInfo); // Atualiza a informação do quarto na interface do usuário
+                }
+
+                // Atualizar a tabela, se necessário
+                // table.getModel().fireTableDataChanged(); // se necessário, depende da implementação da sua tabela
+
+                // Feedback ou mensagem de confirmação, se desejado
+                JOptionPane.showMessageDialog(editFrame, "Alterações salvas com sucesso!");
+            }
+        });
+
         // Torna o botão "Check-in" inicialmente visível se o status for "Reservado"
         // e o botão "Check-out" visível se o status for "Check-in"
         checkInButton.setVisible(booking.getStatusId() == 1);
@@ -632,13 +749,50 @@ public class Janela extends JFrame {
             for (JTextField field : textFields) {
                 field.setEditable(false);
             }
+        }
 
+        // Adiciona um ActionListener ao botão "Get Available Room"
+        getRoomButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Obtém os valores atualizados dos campos de entrada
+                int numberOfAdults = Integer.parseInt(adultsField.getText());
+                int numberOfChildren = Integer.parseInt(childrenField.getText());
+                Date checkInDate = null;
+                Date checkOutDate = null;
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                try {
+                    checkInDate = dateFormat.parse(checkInField.getText());
+                    checkOutDate = dateFormat.parse(checkOutField.getText());
+                } catch (ParseException ex) {
+                    ex.printStackTrace(); // Ou tratamento apropriado para a exceção
+                }
+
+                // Obtém o quarto disponível mais barato com base nas informações atualizadas
+                Room availableRoom = getAvailableRoom(availableRooms, bookings, numberOfAdults, numberOfChildren, checkInDate, checkOutDate);
+                if (availableRoom != null) {
+                    String roomInfo = "Room " + availableRoom.getRoomNumber() + " at $" + availableRoom.getPrice() + " per night";
+                    roomLabel.setText(roomInfo); // Define a informação do quarto como texto da roomInfoLabel
+                } else {
+                    roomLabel.setText("N/A"); // Define "N/A" se nenhum quarto estiver disponível
+                }
+            }
+        });
+
+        // Define a visibilidade do botão "Get Available Room" com base no status da reserva
+        if (booking.getStatusId() == 1) { // Reservado
+            getRoomButton.setVisible(true);
+        } else {
+            getRoomButton.setVisible(false);
         }
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panel.add(getRoomButton);
+        buttonPanel.add(getRoomButton);
         buttonPanel.add(checkInButton);
         buttonPanel.add(checkOutButton);
         buttonPanel.add(cancelBookingButton);
+        buttonPanel.add(saveChangesButton);
 
         editFrame.add(panel, BorderLayout.CENTER);
         editFrame.add(buttonPanel, BorderLayout.SOUTH);
@@ -648,7 +802,7 @@ public class Janela extends JFrame {
     private void addNewBooking() {
         JFrame addFrame = new JFrame("Adicionar Reserva");
         addFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        addFrame.setSize(300, 400);
+        addFrame.setSize(400, 400);
         addFrame.setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridLayout(0, 2));
@@ -667,11 +821,7 @@ public class Janela extends JFrame {
         JLabel childrenLabel = new JLabel("Children:");
         JTextField childrenField = new JTextField();
         JLabel roomLabel = new JLabel("Room:");
-        JTextField roomField = new JTextField();
-        JLabel priceLabel = new JLabel("Price:");
-        JTextField priceField = new JTextField();
-        priceField.setEditable(false);
-        roomField.setEditable(false);
+        JLabel roomInfoLabel = new JLabel();
         JButton getRoomButton = new JButton("Get Available Room");
 
         // Adiciona os campos ao painel
@@ -688,10 +838,8 @@ public class Janela extends JFrame {
         panel.add(childrenLabel);
         panel.add(childrenField);
         panel.add(roomLabel);
-        panel.add(roomField);
-        panel.add(priceLabel);
-        panel.add(priceField);
-        panel.add(getRoomButton); // Adiciona o botão "Get Available Room"
+        panel.add(roomInfoLabel); // Adiciona a label de informações do quarto
+
 
         // Botões para salvar ou cancelar
         JButton saveButton = new JButton("Salvar");
@@ -743,9 +891,9 @@ public class Janela extends JFrame {
         });
 
         // Adiciona os botões ao painel
+        panel.add(getRoomButton);
         panel.add(saveButton);
         panel.add(cancelButton);
-
         // Adiciona o painel ao frame e torna visível
         addFrame.add(panel);
         addFrame.setVisible(true);
@@ -768,12 +916,13 @@ public class Janela extends JFrame {
                 }
 
                 // Obtém o quarto disponível mais barato
+                // Obtém o quarto disponível mais barato
                 Room availableRoom = getAvailableRoom(availableRooms, bookings, numberOfAdults, numberOfChildren, checkInDate, checkOutDate);
                 if (availableRoom != null) {
-                    roomField.setText(String.valueOf(availableRoom.getRoomNumber()));// Exibe o número real do quarto
-                    priceField.setText(String.valueOf(availableRoom.getPrice())); // Exibe o preço do quarto
+                    String roomInfo = "Room " + availableRoom.getRoomNumber() + " at $" + availableRoom.getPrice() + " per night";
+                    roomInfoLabel.setText(roomInfo); // Define a informação do quarto como texto da roomInfoLabel
                 } else {
-                    JOptionPane.showMessageDialog(addFrame, "Nenhum quarto disponível encontrado para as datas selecionadas.");
+                    roomInfoLabel.setText("N/A"); // Define "N/A" se nenhum quarto estiver disponível
                 }
             }
         });
@@ -795,10 +944,19 @@ public class Janela extends JFrame {
     public List<Room> searchAvailableRooms(List<Room> rooms, List<Booking> bookings, int numberOfAdults, int numberOfChildren, Date checkInDate, Date checkOutDate, int canceledStatus) {
         return rooms.stream()
                 .filter(room -> room.getAdultsCapacity() >= numberOfAdults && (room.getAdultsCapacity() + room.getChildrenCapacity()) >= (numberOfAdults + numberOfChildren))
-                .filter(room -> bookings.stream().noneMatch(booking -> booking.getRoomId() == room.getId() &&
-                        ((checkInDate.compareTo(booking.getCheckInDate()) >= 0 && checkInDate.compareTo(booking.getCheckOutDate()) <= 0) ||
-                                (checkOutDate.compareTo(booking.getCheckInDate()) >= 0 && checkOutDate.compareTo(booking.getCheckOutDate()) <= 0)) &&
-                        booking.getStatusId() != canceledStatus))
+                .filter(room -> {
+                    // Verifica se há alguma sobreposição de datas de reserva no mesmo quarto
+                    for (Booking booking : bookings) {
+                        if (booking.getRoomId() == room.getId()) {
+                            // Verifica se as datas da nova reserva sobrepõem as datas da reserva existente
+                            if ((checkInDate.before(booking.getCheckOutDate()) || checkInDate.equals(booking.getCheckOutDate())) &&
+                                    (checkOutDate.after(booking.getCheckInDate()) || checkOutDate.equals(booking.getCheckInDate()))) {
+                                return false; // O quarto não está disponível para as datas selecionadas
+                            }
+                        }
+                    }
+                    return true; // O quarto está disponível para as datas selecionadas
+                })
                 .sorted(Comparator.comparing(Room::getPrice))
                 .collect(Collectors.toList());
     }
