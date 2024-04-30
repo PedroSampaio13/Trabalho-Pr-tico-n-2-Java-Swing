@@ -26,7 +26,8 @@ public class Booking {
         this.status = new Status(statusId);
     }
 
-    public Booking(String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int roomId, int statusId) {
+
+    public Booking(String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int numberOfAdults, int numberOfChildren, int roomId, int statusId) {
         this.guestFirstName = guestFirstName;
         this.guestLastName = guestLastName;
         this.checkInDate = checkInDate;
