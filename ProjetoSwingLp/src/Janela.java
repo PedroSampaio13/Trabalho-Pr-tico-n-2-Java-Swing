@@ -24,29 +24,19 @@ public class Janela extends JFrame {
     Janela(List<Room> availableRooms, List<Booking> bookings) {
         this.availableRooms = availableRooms;
         this.bookings = bookings;
+        this.setTitle("Bookings"); // Adiciona um título ao GUI
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Permite fechar o GUI no X
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH); // Define o estado da janela como maximizado
+        this.getContentPane().setBackground(new Color(123, 165, 123)); // Define a cor de fundo da janela
+        this.setVisible(true); // Torna a janela visível
 
         // Adiciona botões para alternar entre quartos e reservas (bookings)
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton homepageButton = new JButton("Homepage");
         JButton roomsButton = new JButton("Quartos");
         JButton bookingsButton = new JButton("Reservas");
-        buttonPanel.add(homepageButton);
-        buttonPanel.add(roomsButton);
-        buttonPanel.add(bookingsButton);
-
-        this.setTitle("Bookings"); // Adiciona um título ao GUI
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Permite fechar o GUI no X
-        this.setResizable(true); // Permite que o usuário defina o tamanho da janela
-        this.setSize(900, 600); // Define o tamanho inicial da janela
-        this.getContentPane().setBackground(new Color(123, 165, 123)); // Define a cor de fundo da janela
-        this.setVisible(true);
-
-        // Define a cor de fundo da janela
-        this.getContentPane().setBackground(new Color(123, 165, 123)); // Define a cor de fundo da janela
-
 
         JPanel homepagePanel = new JPanel(new GridLayout(4, 1)); // GridLayout para organizar em quatro linhas
-
         // Tabela para reservas com check-in hoje
         DefaultTableModel todayBookingsTableModel = createCheckInTableModel(); // Usar a nova função para criar o modelo de tabela
         JTable todayBookingsTable = new JTable(todayBookingsTableModel);
@@ -86,8 +76,6 @@ public class Janela extends JFrame {
         // Adicione um espaço entre as seções
         homepagePanel.add(new JPanel()); // Adiciona um painel vazio para criar um espaço
 
-
-
         // Crie um novo painel que conterá buttonPanel e homepagePanel
         JPanel newPanel = new JPanel(new BorderLayout());
         newPanel.add(buttonPanel, BorderLayout.NORTH); // Adiciona o buttonPanel ao novo painel na parte superior
@@ -99,16 +87,11 @@ public class Janela extends JFrame {
         getContentPane().revalidate(); // Atualiza a exibição
         getContentPane().repaint(); // Repinta a tela para mostrar as alterações
 
-
         this.setTitle("Bookings"); // Adiciona um título ao GUI
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Permite fechar o GUI no X
-        this.setResizable(true); // Permite que o usuário defina o tamanho da janela
-        this.setSize(900, 600); // Define o tamanho inicial da janela
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH); // Define o estado da janela como maximizado
         this.getContentPane().setBackground(new Color(123, 165, 123)); // Define a cor de fundo da janela
-        this.setVisible(true);
-
-        // Define a cor de fundo da janela
-        this.getContentPane().setBackground(new Color(123, 165, 123)); // Define a cor de fundo da janela
+        this.setVisible(true); // Torna a janela visível
 
         // Cria os cabeçalhos da tabela
         String[] columnNames = {"Room", "Adults Capacity", "Children Capacity", "Price"};
@@ -131,9 +114,6 @@ public class Janela extends JFrame {
 
         // Adiciona o JScrollPane ao centro da janela
         this.add(scrollPane, BorderLayout.CENTER);
-
-
-
 
         searchField = new JTextField(20);
         statusField = new JTextField(10);
@@ -159,17 +139,17 @@ public class Janela extends JFrame {
         searchPanel.add(statusField);
         searchPanel.add(searchButton); // Adiciona o botão de pesquisa ao painel de pesquisa
         this.add(searchPanel, BorderLayout.SOUTH);
-
-
         searchField.setVisible(false);
         statusField.setVisible(false);
         remove(searchPanel);
 
+
         homepageButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JPanel homepagePanel = new JPanel(new GridLayout(4, 1)); // GridLayout para organizar em quatro linhas
 
+                JPanel homepagePanel = new JPanel(new GridLayout(4, 1)); // GridLayout para organizar em quatro linhas
+                addBookingButton.setVisible(false);
                 // Tabela para reservas com check-in hoje
                 DefaultTableModel todayBookingsTableModel = createCheckInTableModel(); // Usar a nova função para criar o modelo de tabela
                 JTable todayBookingsTable = new JTable(todayBookingsTableModel);
@@ -248,6 +228,7 @@ public class Janela extends JFrame {
         bookingsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                addBookingButton.setVisible(true);
                 // Exibe a lista de reservas (bookings)
                 DefaultTableModel bookingModel = createBookingTableModel(bookings);
                 table.setModel(bookingModel);
