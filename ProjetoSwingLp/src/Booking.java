@@ -1,7 +1,7 @@
 import java.util.Date;
 
 public class Booking {
-
+    private static int nextId = 1; // Variável de classe para o próximo ID disponível
     private int id;
     private String guestFirstName;
     private String guestLastName;
@@ -13,8 +13,8 @@ public class Booking {
     private int statusId;
     Status status;
 
-    public Booking(int id, String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int numberOfAdults, int numberOfChildren, int roomId, int statusId) {
-        this.id = id;
+    public Booking(String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int numberOfAdults, int numberOfChildren, int roomId, int statusId) {
+        this.id = nextId++; // Incrementa o ID e atribui o próximo ID disponível
         this.guestFirstName = guestFirstName;
         this.guestLastName = guestLastName;
         this.checkInDate = checkInDate;
@@ -26,8 +26,7 @@ public class Booking {
         this.status = new Status(statusId);
     }
 
-
-    public Booking(String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int numberOfAdults, int numberOfChildren, int roomId, int statusId) {
+    public Booking(String guestFirstName, String guestLastName, Date checkInDate, Date checkOutDate, int roomId, int statusId) {
         this.guestFirstName = guestFirstName;
         this.guestLastName = guestLastName;
         this.checkInDate = checkInDate;
