@@ -36,63 +36,6 @@ public class Janela extends JFrame {
         JButton roomsButton = new JButton("Quartos");
         JButton bookingsButton = new JButton("Reservas");
 
-        JPanel homepagePanel = new JPanel(new GridLayout(4, 1)); // GridLayout para organizar em quatro linhas
-        // Tabela para reservas com check-in hoje
-        DefaultTableModel todayBookingsTableModel = createCheckInTableModel(); // Usar a nova função para criar o modelo de tabela
-        JTable todayBookingsTable = new JTable(todayBookingsTableModel);
-        todayBookingsTable.setName("CheckInTable");
-        todayBookingsTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
-        todayBookingsTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox()));
-        JScrollPane todayScrollPane = new JScrollPane(todayBookingsTable);
-
-        // Título "Checking In Today" e a tabela correspondente
-        JPanel checkInPanel = new JPanel(new BorderLayout());
-        JLabel checkInTitle = new JLabel("Checking In Today");
-        checkInTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        checkInTitle.setFont(new Font("Arial", Font.BOLD, 18)); // Tamanho e estilo da fonte ajustados
-        checkInPanel.add(Box.createVerticalStrut(20)); // Espaço em cima do título
-        checkInPanel.add(checkInTitle, BorderLayout.NORTH);
-        checkInPanel.add(todayScrollPane, BorderLayout.CENTER);
-        homepagePanel.add(checkInPanel);
-
-        // Tabela para reservas com check-out hoje
-        DefaultTableModel checkOutTableModel = createCheckOutTableModel(); // Usar a nova função para criar o modelo de tabela
-        JTable checkOutTable = new JTable(checkOutTableModel);
-        checkOutTable.setName("CheckOutTable");
-        checkOutTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer());
-        checkOutTable.getColumnModel().getColumn(5).setCellEditor(new ButtonEditor(new JCheckBox()));
-        JScrollPane checkOutScrollPane = new JScrollPane(checkOutTable);
-
-        // Título "Checking Out Today" e a tabela correspondente
-        JPanel checkOutPanel = new JPanel(new BorderLayout());
-        JLabel checkOutTitle = new JLabel("Checking Out Today");
-        checkOutTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        checkOutTitle.setFont(new Font("Arial", Font.BOLD, 18)); // Tamanho e estilo da fonte ajustados
-        checkOutPanel.add(Box.createVerticalStrut(20)); // Espaço em cima do título
-        checkOutPanel.add(checkOutTitle, BorderLayout.NORTH);
-        checkOutPanel.add(checkOutScrollPane, BorderLayout.CENTER);
-        homepagePanel.add(checkOutPanel);
-
-        // Adicione um espaço entre as seções
-        homepagePanel.add(new JPanel()); // Adiciona um painel vazio para criar um espaço
-
-        // Crie um novo painel que conterá buttonPanel e homepagePanel
-        JPanel newPanel = new JPanel(new BorderLayout());
-        newPanel.add(buttonPanel, BorderLayout.NORTH); // Adiciona o buttonPanel ao novo painel na parte superior
-        newPanel.add(homepagePanel, BorderLayout.CENTER); // Adiciona o homepagePanel ao novo painel no centro
-
-        // Atualize a exibição para mostrar a página Homepage
-        getContentPane().removeAll(); // Remove todos os componentes da janela atual
-        getContentPane().add(newPanel, BorderLayout.CENTER); // Adiciona o novo painel à janela
-        getContentPane().revalidate(); // Atualiza a exibição
-        getContentPane().repaint(); // Repinta a tela para mostrar as alterações
-
-        this.setTitle("Bookings"); // Adiciona um título ao GUI
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Permite fechar o GUI no X
-        this.setExtendedState(JFrame.MAXIMIZED_BOTH); // Define o estado da janela como maximizado
-        this.getContentPane().setBackground(new Color(123, 165, 123)); // Define a cor de fundo da janela
-        this.setVisible(true); // Torna a janela visível
-
         // Cria os cabeçalhos da tabela
         String[] columnNames = {"Room", "Adults Capacity", "Children Capacity", "Price"};
 
@@ -114,6 +57,7 @@ public class Janela extends JFrame {
 
         // Adiciona o JScrollPane ao centro da janela
         this.add(scrollPane, BorderLayout.CENTER);
+
 
         searchField = new JTextField(20);
         statusField = new JTextField(10);
@@ -287,6 +231,7 @@ public class Janela extends JFrame {
 
         ImageIcon icon = new ImageIcon("logo.jpg"); // Cria um ícone
         this.setIconImage(icon.getImage()); // Adiciona o ícone
+        homepageButton.doClick();
     }
 
     private DefaultTableModel createCheckInTableModel() {
