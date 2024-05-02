@@ -482,33 +482,6 @@ public class Janela extends JFrame {
         return model;
     }
 
-    private DefaultTableModel createBookedBookingTableModelHomeCheckIn(List<Booking> bookings) {
-        String[] columnNames = {"Guest First Name", "Guest Last Name", "Room", "Check-out"};
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy"); // Formato desejado para as datas
-
-        for (Booking booking : bookings) {
-            // Check if the booking status is BOOKED (status ID equals 1)
-            if (booking.getStatusId() == 1) {
-                // Obtém o objeto Room correspondente ao ID do quarto na reserva
-                Room room = availableRooms.stream()
-                        .filter(r -> r.getId() == booking.getRoomId())
-                        .findFirst()
-                        .orElse(null);
-
-                // Verifica se o objeto Room foi encontrado
-                String roomNumber = (room != null) ? String.valueOf(room.getRoomNumber()) : "N/A";
-
-                // Formata as datas de check-in e check-out para o formato desejado
-                String checkOutDateFormatted = dateFormat.format(booking.getCheckOutDate());
-
-                Object[] rowData = {booking.getGuestFirstName(), booking.getGuestLastName(), roomNumber, checkOutDateFormatted};
-                model.addRow(rowData);
-            }
-        }
-        return model;
-    }
-
     private DefaultTableModel createBookingTableModel(List<Booking> bookings) {
         String[] columnNames = {"Guest First Name", "Guest Last Name", "Room", "Check-in", "Check-out", "Status"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
@@ -737,11 +710,10 @@ public class Janela extends JFrame {
                     roomLabel.setText(roomInfo); // Atualiza a informação do quarto na interface do usuário
                 }
 
-                // Atualizar a tabela, se necessário
-                // table.getModel().fireTableDataChanged(); // se necessário, depende da implementação da sua tabela
-
                 // Feedback ou mensagem de confirmação, se desejado
                 JOptionPane.showMessageDialog(editFrame, "Alterações salvas com sucesso!");
+
+                editFrame.dispose();
             }
         });
 
@@ -896,11 +868,13 @@ public class Janela extends JFrame {
         });
 
         // Adiciona os botões ao painel
-        panel.add(getRoomButton);
-        panel.add(saveButton);
-        panel.add(cancelButton);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(getRoomButton);
+        buttonPanel.add(saveButton);
+        buttonPanel.add(cancelButton);
         // Adiciona o painel ao frame e torna visível
-        addFrame.add(panel);
+        addFrame.add(panel, BorderLayout.CENTER);
+        addFrame.add(buttonPanel, BorderLayout.SOUTH);
         addFrame.setVisible(true);
 
         // Adiciona um ActionListener ao botão "Get Available Room"
@@ -920,7 +894,6 @@ public class Janela extends JFrame {
                     ex.printStackTrace(); // Ou tratamento apropriado para a exceção
                 }
 
-                // Obtém o quarto disponível mais barato
                 // Obtém o quarto disponível mais barato
                 Room availableRoom = getAvailableRoom(availableRooms, bookings, numberOfAdults, numberOfChildren, checkInDate, checkOutDate);
                 if (availableRoom != null) {
