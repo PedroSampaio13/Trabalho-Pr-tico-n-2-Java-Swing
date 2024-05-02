@@ -29,14 +29,16 @@ public class Main {
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new GridLayout(3, 1, 10, 10));
 
-        JLabel titleLabel = new JLabel("Login Form");
+        JLabel titleLabel = new JLabel("BookingSystem");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         JLabel usernameLabel = new JLabel("Username:");
         JTextField usernameField = new JTextField();
+
         JLabel passwordLabel = new JLabel("Password:");
         JPasswordField passwordField = new JPasswordField();
+
 
         JButton loginButton = new JButton("Login");
         loginButton.addActionListener(new ActionListener() {
@@ -46,15 +48,15 @@ public class Main {
                 String password = new String(passwordField.getPassword());
 
                 // Verifique as credenciais do usuário aqui
-                // Se as credenciais estiverem corretas, crie a janela principal (Dashboard)
-                // Caso contrário, exiba uma mensagem de erro
+                // Se as credenciais estiverem corretas, cria a janela principal (Dashboard)
+                // Caso contrário, exibe uma mensagem de erro
                 if (username.equals("admin") && password.equals("admin")) {
                     loginFrame.dispose(); // Fecha o formulário de login
 
-                    // Aqui você precisa criar uma lista de quartos disponíveis
+                    // criar uma lista de quartos disponíveis
                     List<Room> availableRooms = createSampleAvailableRooms();
 
-                    // Aqui você precisa criar uma lista de reservas
+                    //  criar uma lista de reservas
                     List<Booking> bookings = createSampleBookings();
 
                     // Cria a janela com a lista de quartos disponíveis e de reservas
@@ -66,11 +68,14 @@ public class Main {
             }
         });
 
+        // Adiciona uma tecla de atalho para o botão de login quando "Enter" é pressionado
+        loginFrame.getRootPane().setDefaultButton(loginButton);
+
         formPanel.add(usernameLabel);
         formPanel.add(usernameField);
         formPanel.add(passwordLabel);
         formPanel.add(passwordField);
-        formPanel.add(loginButton);
+        formPanel.add(loginButton); // Adiciona o botão de login ao painel de formulário
 
         panel.add(titleLabel, BorderLayout.NORTH);
         panel.add(formPanel, BorderLayout.CENTER);
@@ -79,8 +84,8 @@ public class Main {
         loginFrame.setVisible(true);
     }
 
-    // Método de exemplo para criar uma lista de quartos disponíveis
-    private static List<Room> createSampleAvailableRooms() {
+       // Método para criar uma lista de quartos disponíveis
+        private static List<Room> createSampleAvailableRooms() {
         List<Room> availableRooms = new ArrayList<>();
 
         // Adiciona alguns quartos disponíveis à lista
