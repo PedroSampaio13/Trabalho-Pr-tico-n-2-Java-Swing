@@ -47,9 +47,9 @@ public class Main {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
 
-                // Verifique as credenciais do usuário aqui
+                // Virificar as credenciais do user aqui
                 // Se as credenciais estiverem corretas, cria a janela principal (Dashboard)
-                // Caso contrário, exibe uma mensagem de erro
+                // Caso contrário mensagem de erro
                 if (username.equals("admin") && password.equals("admin")) {
                     loginFrame.dispose(); // Fecha o formulário de login
 
@@ -68,14 +68,15 @@ public class Main {
             }
         });
 
-        // Adiciona uma tecla de atalho para o botão de login quando "Enter" é pressionado
+        // Adicionar uma tecla de atalho para o botão de login quando "Enter" é pressionado
         loginFrame.getRootPane().setDefaultButton(loginButton);
 
+        // Adicionar os botões ao painel de formulário
         formPanel.add(usernameLabel);
         formPanel.add(usernameField);
         formPanel.add(passwordLabel);
         formPanel.add(passwordField);
-        formPanel.add(loginButton); // Adiciona o botão de login ao painel de formulário
+        formPanel.add(loginButton);
 
         panel.add(titleLabel, BorderLayout.NORTH);
         panel.add(formPanel, BorderLayout.CENTER);
