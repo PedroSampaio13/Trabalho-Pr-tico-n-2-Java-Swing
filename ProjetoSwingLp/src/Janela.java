@@ -701,6 +701,8 @@ public class Janela extends JFrame {
 
                 JOptionPane.showMessageDialog(editFrame, "Alterações salvas com sucesso!");
 
+                updateBookingTable();
+                
                 editFrame.dispose();
             }
         });
