@@ -147,7 +147,9 @@ public class Janela extends JFrame {
                 //Desenha a imagem de fundo
                 JLabel fundo = new JLabel(imagemFundo);
 
-                homepagePanel.add(fundo);
+                fundo.setBounds(0, 0, getWidth(), getHeight() + 100);
+
+
 
 
             }
