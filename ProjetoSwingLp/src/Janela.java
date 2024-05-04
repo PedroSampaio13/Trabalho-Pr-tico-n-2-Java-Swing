@@ -141,6 +141,15 @@ public class Janela extends JFrame {
                 getContentPane().add(newPanel, BorderLayout.CENTER); // Adiciona o novo painel à janela
                 getContentPane().revalidate(); // Atualiza a exibição
                 getContentPane().repaint(); // Repinta a tela para mostrar as alterações
+
+                //Carrega a imagem de fundo
+                ImageIcon imagemFundo = new ImageIcon("background.jpg");
+                //Desenha a imagem de fundo
+                JLabel fundo = new JLabel(imagemFundo);
+
+                homepagePanel.add(fundo);
+
+
             }
         });
 
