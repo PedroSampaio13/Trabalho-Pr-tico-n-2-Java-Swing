@@ -128,6 +128,8 @@ public class Janela extends JFrame {
                 checkOutPanel.add(checkOutTitle, BorderLayout.NORTH);
                 checkOutPanel.add(checkOutScrollPane, BorderLayout.CENTER);
                 homepagePanel.add(checkOutPanel);
+                checkOutScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200)); // Defina a altura máxima desejada, por exemplo, 200 pixels
+
 
                 homepagePanel.add(new JPanel()); // Adiciona um painel vazio para criar um espaço
 
@@ -147,8 +149,7 @@ public class Janela extends JFrame {
                 //Desenha a imagem de fundo
                 JLabel fundo = new JLabel(imagemFundo);
 
-                fundo.setBounds(0, 0, getWidth(), getHeight() + 100);
-
+                homepagePanel.add(fundo);
 
 
 
